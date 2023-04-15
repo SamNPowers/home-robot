@@ -350,6 +350,6 @@ if __name__ == "__main__":
             task_args = copy.deepcopy(args)
             task_args.train_dir = os.path.join(task_args.train_dir, task_name)
             task_args.valid_dir = os.path.join(task_args.valid_dir, task_name)
-            collect_data(args, [task_name], headless=(not args.visualize))
+            collect_data(task_args, [task_name], headless=(not args.visualize))
     else:
         collect_data(args, tasks_to_gen, headless=(not args.visualize))
