@@ -18,6 +18,8 @@ from rlbench.tasks import (
     CloseDrawer,
     EmptyContainer,
     InsertOntoSquarePeg,
+    MeatOffGrill,
+    MeatOnGrill,
     OpenDoor,
     OpenDrawer,
     PickAndLift,
@@ -95,6 +97,8 @@ inverse_tasks = [
     ("take_toilet_roll_off_stand", TakeToiletRollOffStand, None),
     ("put_money_in_safe", PutMoneyInSafe, None),
     ("take_money_out_safe", TakeMoneyOutSafe, None),
+    ("meat_on_grill", MeatOnGrill, None),
+    ("meat_off_grill", MeatOffGrill, None),
 ]
 tasks.update({t[0]: (t[1], t[2]) for t in inverse_tasks})
 
