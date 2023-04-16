@@ -27,6 +27,7 @@ class RLBenchOfflineEnv(gym.Env):
         self._augmented_keypoint_offset = augmented_keypoint_offset
         self._use_extra_gripper_change_keypoint = use_extra_gripper_change_keypoint
 
+        print(f"Loading offline dataset from: {dataset_dir}")
         self._loader = RLBenchDataset(
             dataset_dir,
             data_augmentation=False,
