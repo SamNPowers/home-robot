@@ -22,10 +22,23 @@ from rlbench.tasks import (
     OpenDrawer,
     PickAndLift,
     PourFromCupToCup,
+    PutItemInDrawer,
+    PutMoneyInSafe,
     PutPlateInColoredDishRack,
+    PutShoesInBox,
+    PutToiletRollOnStand,
+    PutTrayInOven,
+    PutUmbrellaInUmbrellaStand,
     ReachAndDrag,
     ReachTarget,
+    TakeItemOutOfDrawer,
     TakeLidOffSaucepan,
+    TakeMoneyOutSafe,
+    TakePlateOffColoredDishRack,
+    TakeShoesOutOfBox,
+    TakeToiletRollOffStand,
+    TakeTrayOutOfOven,
+    TakeUmbrellaOutOfUmbrellaStand,
 )
 from rlbench_continual.utils import demo_loading_utils
 from tqdm import tqdm
@@ -54,16 +67,36 @@ tasks = {
 
 color_tasks = {
     "pick_and_lift": PickAndLift,
-    "reach_and_drag": ReachAndDrag,
+    "reach_and_drag": ReachAndDrag,  # invisible cube? invisible stick?
     "insert_onto_square_peg": InsertOntoSquarePeg,
     # "put_plate_in_colored_dish_rack": PutPlateInColoredDishRack,
     "empty_container": EmptyContainer,
     "pour_from_cup_to_cup": PourFromCupToCup,
 }
-
 for task_key, task_type in color_tasks.items():
     for color_id in range(len(colors)):
         tasks[f"{task_key}_{color_id}"] = (task_type, color_id)
+
+# Defining this as a list for convenience in task collection, since a defined order means I can parallelize more easily
+inverse_tasks = [
+    ("put_item_in_drawer_btm", PutItemInDrawer, 0),
+    ("put_item_in_drawer_mid", PutItemInDrawer, 1),
+    ("put_item_in_drawer_top", PutItemInDrawer, 2),
+    ("take_item_out_of_drawer_btm", TakeItemOutOfDrawer, 0),
+    ("take_item_out_of_drawer_mid", TakeItemOutOfDrawer, 1),
+    ("take_item_out_of_drawer_top", TakeItemOutOfDrawer, 2),
+    ("put_tray_in_oven", PutTrayInOven, None),
+    ("take_tray_out_of_oven", TakeTrayOutOfOven, None),
+    ("put_shoes_in_box", PutShoesInBox, None),
+    ("take_shoes_out_of_box", TakeShoesOutOfBox, None),
+    ("put_umbrella_in_stand", PutUmbrellaInUmbrellaStand, None),
+    ("take_umbrella_out_of_stand", TakeUmbrellaOutOfUmbrellaStand, None),
+    ("put_toilet_roll_on_stand", PutToiletRollOnStand, None),
+    ("take_toilet_roll_off_stand", TakeToiletRollOffStand, None),
+    ("put_money_in_safe", PutMoneyInSafe, None),
+    ("take_money_out_safe", TakeMoneyOutSafe, None),
+]
+tasks.update({t[0]: (t[1], t[2]) for t in inverse_tasks})
 
 reach = ["reach_target_%d" % (i + 1) for i in range(5)]
 open_drawer = ["open_drawer_%s" % i for i in ["btm", "mid", "top"]]
@@ -324,6 +357,7 @@ def parse_args():
         help="visualize RL bench while collecting data",
     )
     parser.add_argument("--separate", action="store_true")
+    parser.add_argument("--separate_start_id", type=int, default=0)
     return parser.parse_args()
 
 
@@ -334,14 +368,18 @@ if __name__ == "__main__":
     # tasks_to_gen = ["reach_target_1"]
     # tasks_to_gen = reach + open_drawer + close_drawer
     # tasks_to_gen += ["take_lid_off_saucepan"]
+
     if args.tasks == "colors":
         tasks_to_gen = []
         for task_key in color_tasks.keys():
             # red, green, blue, yellow, orange, violet
             for color_id in [0, 3, 4, 6, 11, 16]:
                 tasks_to_gen.append(f"{task_key}_{color_id}")
+    elif args.tasks == "inverses":
+        tasks_to_gen = [t[0] for t in inverse_tasks][args.separate_start_id :]
     else:
         tasks_to_gen = args.tasks.split(",")
+
     # tasks_to_gen = ["take_lid_off_saucepan"]
     # tasks_to_gen += reach + open_drawer + close_drawer
 
@@ -350,6 +388,10 @@ if __name__ == "__main__":
             task_args = copy.deepcopy(args)
             task_args.train_dir = os.path.join(task_args.train_dir, task_name)
             task_args.valid_dir = os.path.join(task_args.valid_dir, task_name)
-            collect_data(task_args, [task_name], headless=(not args.visualize))
+
+            try:
+                collect_data(task_args, [task_name], headless=(not args.visualize))
+            except Exception as e:
+                print(f"Failed to collect task for {task_name} with error {e}")
     else:
         collect_data(args, tasks_to_gen, headless=(not args.visualize))
