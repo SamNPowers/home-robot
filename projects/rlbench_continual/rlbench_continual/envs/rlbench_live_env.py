@@ -33,7 +33,14 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
     # TODO: basing it on OfflineEnv to initialize our live env based on the tasks given to the offline env
     # reconsider if it diverges too far/doesn't make sense
 
-    def __init__(self, dataset_dir, headless, views, language_embedding_model=None):
+    def __init__(
+        self,
+        dataset_dir,
+        headless,
+        views,
+        language_embedding_model=None,
+        trial_multiplier=3,
+    ):
         super().__init__(
             dataset_dir,
             random_trajectory_start=False,
@@ -41,6 +48,7 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
             views=views,
             language_embedding_model=language_embedding_model,
         )
+        self._trial_multiplier = trial_multiplier
 
         obs_config = ObservationConfig(gripper_joint_positions=True)
         self._sim_env = Environment(
@@ -150,7 +158,9 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
 
         trial_length = len(self._current_keypoint_indices)
         done_predicted = False  # time_frac > (trial_length - 0.9) / trial_length
-        done_by_maxsteps_exceeded = self._current_timestep > trial_length * 3
+        done_by_maxsteps_exceeded = (
+            self._current_timestep > trial_length * self._trial_multiplier
+        )
         done = done or done_predicted or done_by_maxsteps_exceeded
 
         info = {}
