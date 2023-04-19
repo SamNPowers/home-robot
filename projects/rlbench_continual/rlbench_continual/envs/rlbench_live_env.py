@@ -40,6 +40,7 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
         views,
         language_embedding_model=None,
         trial_multiplier=3,
+        static_positions=False,
     ):
         super().__init__(
             dataset_dir,
@@ -58,6 +59,7 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
             ),
             obs_config=obs_config,
             headless=headless,
+            static_positions=static_positions,
         )
         self._current_task = None
         self._current_timestep = 0
