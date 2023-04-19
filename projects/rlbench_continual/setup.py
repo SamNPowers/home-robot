@@ -16,5 +16,9 @@ setup(
     author_email="snpowers@cs.cmu.edu",
     version="0.0.0",
     packages=find_packages(),
-    install_requires=["open3d", "cchardet", "chardet"],
+    install_requires=[
+        "open3d<=0.16",  # Until https://github.com/isl-org/Open3D/issues/6009 is fixed
+        "cchardet",
+        "chardet",
+    ],
 )

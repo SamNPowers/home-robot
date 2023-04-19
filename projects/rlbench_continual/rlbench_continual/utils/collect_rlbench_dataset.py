@@ -214,9 +214,12 @@ def collect_data(args, task_names, headless):
             seed = int.from_bytes(os.urandom(4), byteorder="little")
 
             # Demo setup
-            np.random.seed(seed)
             desc, _ = task.reset()
             print("Generating data for task =", task_name, desc)
+            print(f"Using seed: {seed}")
+
+            # get_demos calls reset() internally. Set the seed right before, so there's exactly 1 reset after seeding (for consistency)
+            np.random.seed(seed)
             demo = task.get_demos(1, live_demos=True)[0]
 
             # Add some waypoints in case we have a use for them
@@ -230,7 +233,9 @@ def collect_data(args, task_names, headless):
             writer.add_config(iter=i)
             writer.add_config(cmd=task_name)
             writer.add_config(descriptions=",".join(desc))
-            writer.add_config(seed=seed)
+            writer.add_config(
+                seed=seed
+            )  # TODO: In theory demo.random_seed could be used, but that returns a random_state, which is more of a pain to encode in h5
 
             # Automatically annotate subgoals
             keypoints = np.zeros(len(demo))

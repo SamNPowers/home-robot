@@ -122,7 +122,7 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
             self._current_task.set_variation(task_variant)
 
         if self._seed_from_demo:
-            seed = self._current_trial["seed"]
+            seed = self._current_trial["seed"][()]
             np.random.seed(seed)
 
         desc, rlbench_obs = self._current_task.reset()
@@ -146,11 +146,6 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
         try:
             rlbench_obs, reward, done = self._current_task.step(task_action)
 
-            """for _ in range(300):
-                self._sim_env._pyrep.step_ui()
-                import time
-                time.sleep(0.1)"""
-
             obs = self._convert_rlbench_observation_to_gym(
                 rlbench_obs, self._current_language_command
             )
@@ -159,6 +154,12 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
             done = True
             reward = 0
             obs = self._last_observation
+
+        for _ in range(6000):
+            self._sim_env._pyrep.step_ui()
+            import time
+
+            time.sleep(0.1)
 
         self._current_timestep += 1
 
