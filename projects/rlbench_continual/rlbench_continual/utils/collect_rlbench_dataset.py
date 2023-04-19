@@ -172,7 +172,7 @@ def get_xyz_rgb(obs, num_pts=30000):
     return xyz.astype(np.float32), rgb.astype(np.float32)
 
 
-def collect_data(args, task_names, headless, static):
+def collect_data(args, task_names, headless):
     # To use 'saved' demos, set the path below, and set live_demos=False
     live_demos = True
     acc_tol = 0.01
@@ -186,7 +186,6 @@ def collect_data(args, task_names, headless, static):
         ),
         obs_config=obs_config,
         headless=headless,
-        static_positions=static,
     )
     env.launch()
     Path(args.train_dir).mkdir(parents=True, exist_ok=True)
@@ -212,7 +211,10 @@ def collect_data(args, task_names, headless, static):
             else:
                 writer = valid_writer
 
+            seed = int.from_bytes(os.urandom(4), byteorder="little")
+
             # Demo setup
+            np.random.seed(seed)
             desc, _ = task.reset()
             print("Generating data for task =", task_name, desc)
             demo = task.get_demos(1, live_demos=True)[0]
@@ -228,6 +230,7 @@ def collect_data(args, task_names, headless, static):
             writer.add_config(iter=i)
             writer.add_config(cmd=task_name)
             writer.add_config(descriptions=",".join(desc))
+            writer.add_config(seed=seed)
 
             # Automatically annotate subgoals
             keypoints = np.zeros(len(demo))
@@ -363,7 +366,6 @@ def parse_args():
     )
     parser.add_argument("--separate", action="store_true")
     parser.add_argument("--separate_start_id", type=int, default=0)
-    parser.add_argument("--static", action="store_true")
     return parser.parse_args()
 
 
@@ -400,7 +402,6 @@ if __name__ == "__main__":
                     task_args,
                     [task_name],
                     headless=(not args.visualize),
-                    static=args.static,
                 )
             except Exception as e:
                 print(f"Failed to collect task for {task_name} with error {e}")

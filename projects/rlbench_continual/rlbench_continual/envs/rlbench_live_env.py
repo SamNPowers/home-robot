@@ -40,7 +40,7 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
         views,
         language_embedding_model=None,
         trial_multiplier=3,
-        static_positions=False,
+        seed_from_demo=False,
     ):
         super().__init__(
             dataset_dir,
@@ -50,6 +50,7 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
             language_embedding_model=language_embedding_model,
         )
         self._trial_multiplier = trial_multiplier
+        self._seed_from_demo = seed_from_demo
 
         obs_config = ObservationConfig(gripper_joint_positions=True)
         self._sim_env = Environment(
@@ -59,7 +60,6 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
             ),
             obs_config=obs_config,
             headless=headless,
-            static_positions=static_positions,
         )
         self._current_task = None
         self._current_timestep = 0
@@ -120,6 +120,10 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
         self._current_task = self._sim_env.get_task(task_class)
         if task_variant is not None:
             self._current_task.set_variation(task_variant)
+
+        if self._seed_from_demo:
+            seed = self._current_trial["seed"]
+            np.random.seed(seed)
 
         desc, rlbench_obs = self._current_task.reset()
 
