@@ -155,11 +155,11 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
             reward = 0
             obs = self._last_observation
 
-        for _ in range(6000):
+        """for _ in range(6000):
             self._sim_env._pyrep.step_ui()
             import time
 
-            time.sleep(0.1)
+            time.sleep(0.1)"""
 
         self._current_timestep += 1
 
