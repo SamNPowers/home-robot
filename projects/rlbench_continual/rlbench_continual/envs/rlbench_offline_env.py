@@ -20,12 +20,17 @@ class RLBenchOfflineEnv(gym.Env):
         language_embedding_model=None,
         augmented_keypoint_offset=None,
         use_extra_gripper_change_keypoint=False,
+        even_distribution=False,
     ):
         views = views if views is not None else ["front"]
         self._random_trajectory_start = random_trajectory_start
         self._trajectory_length = trajectory_length
         self._augmented_keypoint_offset = augmented_keypoint_offset
         self._use_extra_gripper_change_keypoint = use_extra_gripper_change_keypoint
+
+        # If we naively pick a starting point from the beginning, and have a >1 trajectory length, later points
+        # will be sampled more often
+        self._even_distribution = even_distribution
 
         print(f"Loading offline dataset from: {dataset_dir}")
         self._loader = RLBenchDataset(
@@ -200,17 +205,29 @@ class RLBenchOfflineEnv(gym.Env):
         self._current_keypoint_indices = np.array(keypoint_indices)
         print(f"Running with indices: {self._current_keypoint_indices}")
 
-        self._current_timestep = (
-            0
-            if (options is not None and options.get("ensure_first", False))
-            or not self._random_trajectory_start
-            else np.random.randint(len(self._current_keypoint_indices) - 1)
-        )
+        if (
+            options is not None and options.get("ensure_first", False)
+        ) or not self._random_trajectory_start:
+            self._current_timestep = 0
+        elif self._even_distribution:
+            # TODO: double check the +1
+            self._current_timestep = np.random.randint(
+                -self._trajectory_length + 1, len(self._current_keypoint_indices) - 1
+            )
+        else:
+            self._current_timestep = np.random.randint(
+                len(self._current_keypoint_indices) - 1
+            )
+
         self._max_timestep = (
             self._current_timestep + self._trajectory_length
             if self._trajectory_length is not None
             else None
         )
+
+        if self._current_timestep < 0:
+            assert self._even_distribution
+            self._current_timestep = 0
 
         # Determine what command to associate with this run
         if self._language_embedding_model is not None:
