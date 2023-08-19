@@ -39,6 +39,7 @@ class RLBenchOfflineEnv(gym.Env):
             first_keypoint_only=False,
             debug_closest_pt=False,
         )
+        print(f"From {dataset_dir} loaded {len(self._loader.trials)} trials")
         self._camera_keys = []
         [
             self._camera_keys.extend(

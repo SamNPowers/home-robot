@@ -137,7 +137,13 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
             self._current_task.set_variation(task_variant)
 
         if self._seed_from_demo:
+            assert seed is None, "Seeding from demo conflicts with setting a seed."
             seed = self._current_trial["seed"][()]
+
+        if (
+            seed is not None
+        ):  # TODO: I think this is not really doing much (vs just always calling it), but keeping behavior legacy-consistent for the moment
+            print(f"Seeding live environment with seed: {seed}")
             np.random.seed(seed)
 
         desc, rlbench_obs = self._current_task.reset()
