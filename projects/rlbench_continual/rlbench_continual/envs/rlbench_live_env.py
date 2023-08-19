@@ -1,5 +1,8 @@
 import copy
+import time
 from typing import Optional, Tuple
+import pyrep.backend.simConst as simConst
+import pyrep.backend.sim as sim
 
 import numpy as np
 import trimesh
@@ -30,6 +33,8 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
     A class that will run the policy in the simulation environment
     """
 
+    SIM_SPAWNED=False
+    
     # TODO: basing it on OfflineEnv to initialize our live env based on the tasks given to the offline env
     # reconsider if it diverges too far/doesn't make sense
 
@@ -65,9 +70,16 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
         self._current_timestep = 0
         self._last_observation = None  # Used if we trigger an invalid action
 
+    @classmethod
+    def set_sim_spawned(cls, state):
+        SIM_SPAWNED=state
+        
     def __del__(self):
+        print("Shutting down Coppelia")
+        time.sleep(0.2)  # Despite the sleeps in Coppelia, it still buffer overflows in shutdown (during ui_thread.join)....testing.... 
         self._sim_env.shutdown()
-
+        self.set_sim_spawned(False)
+        
     def _convert_rlbench_observation_to_gym(self, rlbench_obs, language_command):
         state = np.concatenate(
             (rlbench_obs.gripper_pose, np.array([rlbench_obs.gripper_open])), axis=-1
@@ -112,6 +124,9 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
         return_info: bool = False,
         options: Optional[dict] = None,
     ) -> ObsType:
+        assert not self.SIM_SPAWNED
+        self.set_sim_spawned(True)
+        #print(f"Port: {sim.simGetInt32Parameter(simConst.sim_intparam_server_port_start)}")
         self._initialize_new_trial(options)
 
         # Load the task based on its stored name (TODO: de-dupe with collect_rlbench_dataset)
@@ -126,7 +141,7 @@ class RLBenchLiveEnv(RLBenchOfflineEnv):
             np.random.seed(seed)
 
         desc, rlbench_obs = self._current_task.reset()
-
+        time.sleep(1)  # TODO...Coppelia is buffer overflowing
         observation = self._convert_rlbench_observation_to_gym(
             rlbench_obs, self._current_language_command
         )
