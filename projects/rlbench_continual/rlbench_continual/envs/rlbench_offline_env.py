@@ -232,6 +232,8 @@ class RLBenchOfflineEnv(gym.Env):
 
         # Determine what command to associate with this run
         if self._language_embedding_model is not None:
+            print(f"Task descriptions: {self._current_trial['descriptions']}")
+
             raw_language_commands = (
                 self._current_trial["descriptions"].asstr()[()].split(",")
             )
