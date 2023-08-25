@@ -232,6 +232,8 @@ class RLBenchOfflineEnv(gym.Env):
 
         # Determine what command to associate with this run
         if self._language_embedding_model is not None:
+            # TODO: this description separation is apparently quite wrong. Uh...oops. (E.g. take shoes out of box)
+            # The descriptions themselves sometimes have commas, you see
             raw_language_commands = (
                 self._current_trial["descriptions"].asstr()[()].split(",")
             )

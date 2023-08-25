@@ -22,6 +22,7 @@ from rlbench.tasks import (
     MeatOnGrill,
     OpenDoor,
     OpenDrawer,
+    OpenOven,
     PickAndLift,
     PourFromCupToCup,
     PutItemInDrawer,
@@ -99,6 +100,7 @@ inverse_tasks = [
     ("take_money_out_safe", TakeMoneyOutSafe, None),
     ("meat_on_grill", MeatOnGrill, None),
     ("meat_off_grill", MeatOffGrill, None),
+    ("open_oven", OpenOven, None),
 ]
 tasks.update({t[0]: (t[1], t[2]) for t in inverse_tasks})
 
