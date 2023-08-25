@@ -40,6 +40,12 @@ class RLBenchOfflineEnv(gym.Env):
             debug_closest_pt=False,
         )
         print(f"From {dataset_dir} loaded {len(self._loader.trials)} trials")
+
+        for trial_id, trial in enumerate(self._loader.trials):
+            print(
+                f"{dataset_dir} trial {trial_id} has len {len(trial['keypoints'])} and descriptions: {trial['descriptions']}"
+            )
+
         self._camera_keys = []
         [
             self._camera_keys.extend(
